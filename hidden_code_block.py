@@ -1,6 +1,35 @@
-"""Simple, inelegant 
+"""Simple, inelegant Sphinx extension which adds a directive for a
+highlighted code-block that may be toggled hidden and shown in HTML.  
+This is possibly useful for teaching courses.
 
-Thanks to 
+The directive, like the standard code-block directive, takes
+a language argument and an optional linenos parameter.  The
+hidden-code-block adds starthidden and label as optional 
+parameters.
+
+Examples:
+
+.. hidden-code-block:: python
+    :starthidden: False
+
+    a = 10
+    b = a + 5
+
+.. hidden-code-block:: python
+    :label: --- SHOW/HIDE ---
+
+    x = 10
+    y = x + 5
+
+Thanks to http://www.javascriptkit.com/javatutors/dom3.shtml for 
+inspiration on the javascript.  
+
+Thanks to Milad 'animal' Fatenejad for suggesting this extension 
+in the first place.
+
+Written by Anthony 'el Scopz' Scopatz, January 2012.
+
+Released under the WTFPL (http://sam.zoy.org/wtfpl/).
 """
 
 from docutils import nodes
