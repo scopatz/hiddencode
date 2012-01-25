@@ -4,12 +4,11 @@ Thanks to
 """
 
 from docutils import nodes
+from docutils.parsers.rst import directives
 from sphinx.directives.code import CodeBlock
 from sphinx.util.compat import make_admonition
 
-class hidden_code_block(nodes.General, nodes.FixedTextElement):
-    pass
-
+HCB_COUNTER = 0
 
 js_showhide = """\
 <script type="text/javascript">
@@ -25,8 +24,23 @@ js_showhide = """\
 </script>
 """
 
+def nice_bool(arg):
+    tvalues = ('true',  't', 'yes', 'y')
+    fvalues = ('false', 'f', 'no',  'n')
+    arg = directives.choice(arg, tvalues + fvalues)
+    return arg in tvalues
+
+
+class hidden_code_block(nodes.General, nodes.FixedTextElement):
+    pass
+
+
 class HiddenCodeBlock(CodeBlock):
     """Hidden code block is Hidden"""
+
+    option_spec = dict(starthidden=nice_bool, 
+                       label=str,
+                       **CodeBlock.option_spec)
 
     def run(self):
         # Body of the method is more or less copied from CodeBlock
@@ -34,12 +48,17 @@ class HiddenCodeBlock(CodeBlock):
         hcb = hidden_code_block(code, code)
         hcb['language'] = self.arguments[0]
         hcb['linenos'] = 'linenos' in self.options
+        hcb['starthidden'] = self.options.get('starthidden', True)
+        hcb['label'] = self.options.get('label', '+ show/hide code')
         hcb.line = self.lineno
         return [hcb]
 
 
 def visit_hcb_html(self, node):
     """Visit hidden code block"""
+    global HCB_COUNTER
+    HCB_COUNTER += 1
+
     # We want to use the original highlighter so that we don't
     # have to reimplement it.  However it raises a SkipNode 
     # error at the end of the function call.  Thus we intercept
@@ -53,11 +72,15 @@ def visit_hcb_html(self, node):
     # block that was just made.
     code_block = self.body[-1]
 
-    divname = 'hiddencodeblock{}'.format(hash(node))
-    divheader = ("""<a href="javascript:showhide(document.getElementById('{dname}'))">"""
-                 """+ show/hide code</a><br />"""
-                 '''<div id="{dname}" style="display: none">''').format(dname=divname)
+    fill_header = {'divname': 'hiddencodeblock{}'.format(HCB_COUNTER), 
+                   'startdisplay': 'none' if node['starthidden'] else 'block', 
+                   'label': node.get('label'), 
+                   }
 
+    divheader = ("""<a href="javascript:showhide(document.getElementById('{divname}'))">"""
+                 """{label}</a><br />"""
+                 '''<div id="{divname}" style="display: {startdisplay}">'''
+                 ).format(**fill_header)
 
     code_block = js_showhide + divheader + code_block + "</div>"
 
