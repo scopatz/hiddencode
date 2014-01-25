@@ -101,7 +101,7 @@ def visit_hcb_html(self, node):
     # block that was just made.
     code_block = self.body[-1]
 
-    fill_header = {'divname': 'hiddencodeblock{}'.format(HCB_COUNTER), 
+    fill_header = {'divname': 'hiddencodeblock{0}'.format(HCB_COUNTER), 
                    'startdisplay': 'none' if node['starthidden'] else 'block', 
                    'label': node.get('label'), 
                    }
